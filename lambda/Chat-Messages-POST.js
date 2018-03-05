@@ -8,8 +8,13 @@ exports.handler = function (event, context, callback) {
     dynamo.query({
         TableName: 'Chat-Messages',
         ProjectionExpression: 'Sender',
+        Limit: 1,
         KeyConditionExpression: 'ConversationId = :id',
-        ExpressionAttributeValues: {':id': {S: event.id}}
+        FilterExpression: 'Sender > :name OR Sender < :name',
+        ExpressionAttributeValues: {
+            ':id': {S: event.id},
+            ':name': {S: event.cognitoUsername}
+        }
     }, function (err, data) {
         loadMessages(err, data, event, callback);
     });
@@ -19,9 +24,7 @@ function loadMessages(err, data, event, callback) {
     if (err === null) { 
         var other = "";
         data.Items.forEach(function (message) {
-            if (message.Sender.S != event.cognitoUsername) {
                 other = message.Sender.S;
-            }
         });
         postMessages(event, other, callback);
     } else {
