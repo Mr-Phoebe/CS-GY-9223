@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "2018-03-05T17:29:31Z",
+    "version": "2018-03-05T20:49:02Z",
     "title": "ChatAPI"
   },
   "host": "ajer76kw1i.execute-api.us-east-1.amazonaws.com",
@@ -12,6 +12,9 @@
   "paths": {
     "/conversations": {
       "get": {
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],

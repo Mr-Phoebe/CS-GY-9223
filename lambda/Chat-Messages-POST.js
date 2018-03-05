@@ -19,34 +19,30 @@ function loadMessages(err, data, event, callback) {
     if (err === null) { 
         var other = "";
         data.Items.forEach(function (message) {
-            if (message.Sender.S != "Student") {
+            if (message.Sender.S != event.cognitoUsername) {
                 other = message.Sender.S;
             }
         });
-        postMessages(err, event, other, callback);
+        postMessages(event, other, callback);
     } else {
         callback(err);
     }
 }
 
-function postMessages(err, event, othername, callback) {
-    if (err === null) {
-        dynamo.putItem({
-            TableName: 'Chat-Messages',
-            Item: {
-                ConversationId: {S: event.id},
-                Timestamp: {
-                    N: "" + new Date().getTime()
-                },
-                Message: {S: event.message},
-                Sender: {S: 'Student'}
-            }
-        }, function(err) {
-            postReply(err, event.id, othername, callback);
-        });
-    } else {
-        callback(err);
-    }
+function postMessages(event, othername, callback) {
+    dynamo.putItem({
+        TableName: 'Chat-Messages',
+        Item: {
+            ConversationId: {S: event.id},
+            Timestamp: {
+                N: "" + new Date().getTime()
+            },
+            Message: {S: event.message},
+            Sender: {S: event.cognitoUsername}
+        }
+    }, function(err, data) {
+        postReply(err, event.id, othername, callback);
+    });
 }
 
 function postReply(err, id, othername, callback) {
