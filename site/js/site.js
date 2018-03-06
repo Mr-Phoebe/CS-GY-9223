@@ -124,8 +124,7 @@ var ChatApp = window.ChatApp || {};
     };
 
     ChatApp.send = function () {;
-        var message = $('#message').val();
-        $('#message').val('').focus();
+        var message = $('#message').val();        
         // We can assume the token will be set by now
         console.log(message);
         ChatApp.useToken(function(token) {
@@ -135,7 +134,8 @@ var ChatApp = window.ChatApp || {};
                     {headers: {Authorization: token}}
                 )
             .then(function (...args) {
-                console.log(args);                
+                console.log(args);            
+                $('#message').val('').focus();    
                 ChatApp.loadChat();
             });
         });
