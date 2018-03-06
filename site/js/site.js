@@ -180,6 +180,27 @@ var ChatApp = window.ChatApp || {};
         });
 
         userPool.signUp(username, password, [email], null, function (err, result) {
+            var email_regex = /^.*@(gmail\.com|nyu\.edu)$/;
+            var password_regex = /^(?=.*[a-z])(?=.*[0-9]).*$/;
+
+            // check email address
+            if (($('#email').val()).match(email_regex) == null) {
+              alert('Email address shoule like something@gmail.com or something@nyu.edu');
+              return;
+            }
+            
+            // check password
+            if (($('#password').val()).match(password_regex) == null) {
+              alert('Password shoule have at least one number and one lowercase letter');
+              return;
+            }
+
+            // check username
+            if (($('#username').val() == '')) {
+              alert('username should not be empty');
+              return;
+            }
+
             if (err) {
                 alert(err);
             } else {
