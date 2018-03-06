@@ -6,14 +6,11 @@ var dynamo = new AWS.DynamoDB();
 
 exports.handler = function (event, context, callback) {
     dynamo.query({
-        TableName: 'Chat-Messages',
-        ProjectionExpression: 'Sender',
-        Limit: 1,
+        TableName: 'Chat-Conversations',
+        Select: 'ALL_ATTRIBUTES',
         KeyConditionExpression: 'ConversationId = :id',
-        FilterExpression: 'Sender > :name OR Sender < :name',
         ExpressionAttributeValues: {
-            ':id': {S: event.id},
-            ':name': {S: event.cognitoUsername}
+            ':id': {S: event.id}
         }
     }, function (err, data) {
         loadMessages(err, data, event, callback);
@@ -24,7 +21,9 @@ function loadMessages(err, data, event, callback) {
     if (err === null) { 
         var other = "";
         data.Items.forEach(function (message) {
-                other = message.Sender.S;
+            if (message.Username.S != event.cognitoUsername) {
+                other = message.Username.S;
+            }
         });
         postMessages(event, other, callback);
     } else {
