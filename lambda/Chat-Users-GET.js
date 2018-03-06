@@ -14,7 +14,9 @@ exports.handler = function (event, context, callback) {
         if (err === null) {
             var logins = [];
             data.Users.forEach(function (user) {
-                logins.push(user.Username);
+                if (event.cognitoUsername !== user.Username) {
+                    logins.push(user.Username);
+                }
             });
             callback(null, logins);
         } else {
