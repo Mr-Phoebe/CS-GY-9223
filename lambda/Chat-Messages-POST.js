@@ -20,12 +20,19 @@ exports.handler = function (event, context, callback) {
 function loadMessages(err, data, event, callback) {
     if (err === null) { 
         var other = "";
+        var flag = false;
         data.Items.forEach(function (message) {
-            if (message.Username.S != event.cognitoUsername) {
+            if (message.Username.S !== event.cognitoUsername) {
                 other = message.Username.S;
+            } else if (message.Username.S === event.cognitoUsername) {
+                flag = true;
             }
         });
-        postMessages(event, other, callback);
+        if(flag === true)   {
+            postMessages(event, other, callback);
+        } else {
+            callback("unauthorized!");
+        }
     } else {
         callback(err);
     }

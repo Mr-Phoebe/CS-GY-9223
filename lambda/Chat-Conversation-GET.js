@@ -102,7 +102,7 @@ function loadConvoParticipants(convo, convos, callback) {
                 participants.push(item.Username.S);
             });
             convo.participants = participants;
-
+            
             if (finished(convos)) {
                 callback(null, convos);
             }

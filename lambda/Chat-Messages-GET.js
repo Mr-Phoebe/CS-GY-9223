@@ -12,11 +12,11 @@ exports.handler = function (event, context, callback) {
         KeyConditionExpression: 'ConversationId = :id',
         ExpressionAttributeValues: {':id': {S: event.id}}
     }, function (err, data) {
-        loadMessages(err, data, event.id, [], callback);
+        loadMessages(err, data, event.id, [], event.cognitoUsername, callback);
     });
 }
 
-function loadMessages(err, data, id, messages, callback) {
+function loadMessages(err, data, id, messages, username, callback) {
     if (err === null) {
         data.Items.forEach(function (message) {
             messages.push({
@@ -34,17 +34,17 @@ function loadMessages(err, data, id, messages, callback) {
                 ExpressionAttributeValues: {':id': {S: id}},
                 ExclusiveStartKey: data.LastEvaluatedKey
             }, function (err, data) {
-                loadMessages(err, data, id, messages, callback);
+                loadMessages(err, data, id, messages, username, callback);
             });
         } else {
-            loadConversationDetail(id, messages, callback);
+            loadConversationDetail(id, messages, username, callback);
         }
     } else {
         callback(err);
     }
 }
 
-function loadConversationDetail(id, messages, callback) {
+function loadConversationDetail(id, messages, username, callback) {
     dynamo.query({
         TableName: 'Chat-Conversations',
         Select: 'ALL_ATTRIBUTES',
@@ -56,13 +56,17 @@ function loadConversationDetail(id, messages, callback) {
             data.Items.forEach(function (item) {
                 participants.push(item.Username.S);
             });
-
-            callback(null, {
-                id: id,
-                participants: participants,
-                last: messages.length > 0 ? messages[messages.length-1].time : undefined,
-                messages: messages
-            });
+            
+            if (!participants.includes(username)) {
+                callback("unauthorized!");
+            } else {
+                callback(null, {
+                    id: id,
+                    participants: participants,
+                    last: messages.length > 0 ? messages[messages.length-1].time : undefined,
+                    messages: messages
+                });
+            }
         } else {
             callback(err);
         }

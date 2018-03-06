@@ -123,14 +123,21 @@ var ChatApp = window.ChatApp || {};
         });
     };
 
-    ChatApp.send = function () {
+    ChatApp.send = function () {;
+        var message = $('#message').val();
+        $('#message').val('').focus();
         // We can assume the token will be set by now
+        console.log(message);
         ChatApp.useToken(function(token) {
-            apiClient.conversationsIdPost({id: location.hash.substring(1)}, $('#message').val(), {headers: {Authorization: token}})
-                .then(function () {
-                    $('#message').val('').focus();
-                    ChatApp.loadChat();
-                });
+            apiClient.conversationsIdPost(
+                    {id: location.hash.substring(1)}, 
+                    message, 
+                    {headers: {Authorization: token}}
+                )
+            .then(function (...args) {
+                console.log(args);                
+                ChatApp.loadChat();
+            });
         });
     };
 

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "2018-03-05T21:46:27Z",
+    "version": "2018-03-06T16:56:59Z",
     "title": "ChatAPI"
   },
   "host": "ajer76kw1i.execute-api.us-east-1.amazonaws.com",
@@ -30,7 +30,48 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Cognito": []
+          }
+        ]
+      },
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "NewConversation",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/NewConversation"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/ConversationId"
+            },
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Cognito": []
+          }
+        ]
       },
       "options": {
         "consumes": [
@@ -87,11 +128,25 @@
                 "type": "string"
               }
             }
+          },
+          "401": {
+            "description": "401 response",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "Cognito": []
+          }
+        ]
       },
       "post": {
         "consumes": [
+          "application/json"
+        ],
+        "produces": [
           "application/json"
         ],
         "parameters": [
@@ -103,10 +158,21 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "204 response"
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/Empty"
+            }
+          },
+          "401": {
+            "description": "401 response"
           }
-        }
+        },
+        "security": [
+          {
+            "Cognito": []
+          }
+        ]
       },
       "options": {
         "consumes": [
@@ -122,6 +188,9 @@
               "$ref": "#/definitions/Empty"
             },
             "headers": {
+              "Access-Control-Expose-Headers": {
+                "type": "string"
+              },
               "Access-Control-Allow-Origin": {
                 "type": "string"
               },
@@ -138,6 +207,9 @@
     },
     "/users": {
       "get": {
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
@@ -153,7 +225,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Cognito": []
+          }
+        ]
       },
       "options": {
         "consumes": [
@@ -184,10 +261,30 @@
       }
     }
   },
+  "securityDefinitions": {
+    "Cognito": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "x-amazon-apigateway-authtype": "cognito_user_pools"
+    }
+  },
   "definitions": {
+    "ConversationId": {
+      "type": "string"
+    },
     "Empty": {
       "type": "object",
       "title": "Empty Schema"
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "title": "Error Schema"
     },
     "Conversation": {
       "type": "object",
@@ -250,6 +347,12 @@
             "format": "utc-millisec"
           }
         }
+      }
+    },
+    "NewConversation": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     }
   }
