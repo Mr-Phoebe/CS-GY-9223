@@ -1,12 +1,10 @@
 'use strict';
 
-var AWS = require('aws-sdk');
+const AWS = require('aws-sdk');
+const dynamo = new AWS.DynamoDB();
+const sqs = new AWS.SQS();
 
-var dynamo = new AWS.DynamoDB();
-
-var cognito = new AWS.CognitoIdentityServiceProvider();
-
-var sns = new AWS.SNS();
+const queueUrl = "https://sqs.us-east-1.amazonaws.com/923328157162/Chat-Message";
 
 exports.handler = function (event, context, callback) {
     dynamo.query({
@@ -72,19 +70,18 @@ function postReply(err, event, othername, callback) {
                 Sender: {S: othername}
             }
         }, function(err, data) {
-            postEmail(err, event, callback)
+            postQueue(err, event, callback)
         });
     } else {
         callback(err);
     }
 }
 
-function postEmail(err, event, callback) {
+function postQueue(err, event, callback) {
     if (err === null) {
-        sns.publish({
-                Message: "You have a message!",
-                // TODO: Get the phone number from cognito.
-                PhoneNumber: '+1347327****'
+        sqs.sendMessage({
+            MessageBody: JSON.stringify(event),
+			QueueUrl: queueUrl
         }, function(err, data) {
             if(err !== null) {
                 callback(err);
