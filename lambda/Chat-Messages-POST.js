@@ -1,6 +1,8 @@
 'use strict';
 
 const AWS = require('aws-sdk');
+AWS.config.region = 'us-east-1';
+var lexruntime = new AWS.LexRuntime();
 const dynamo = new AWS.DynamoDB();
 const sqs = new AWS.SQS();
 
@@ -52,12 +54,31 @@ function postMessages(event, othername, callback) {
             Sender: {S: event.cognitoUsername}
         }
     }, function(err, data) {
-        postReply(err, event, othername, callback);
+        getReply(err, event, othername, callback);
     });
 }
 
-function postReply(err, event, othername, callback) {
+function getReply(err, event, othername, callback) {
     if (err === null) {
+        var params = {
+    	    botAlias: '$LATEST',
+    	    botName: 'BookTrip',
+    	    inputText: event.message,
+    	    userId: event.cognitoUsername,
+    	    sessionAttributes: {
+    	    }
+    	};
+        lexruntime.postText(params, function(err, data) {
+            postReply(err, event, data, othername, callback)
+    	});
+    } else {
+        callback(err);
+    }
+}
+
+function postReply(err, event, data, othername, callback) {
+    if (err === null) {
+
         // Automatically reply
         dynamo.putItem({
             TableName: 'Chat-Messages',
@@ -66,7 +87,7 @@ function postReply(err, event, othername, callback) {
                 Timestamp: {
                     N: "" + new Date().getTime()
                 },
-                Message: {S: "This is the automatical reply!"},
+                Message: {S: data.message},
                 Sender: {S: othername}
             }
         }, function(err, data) {

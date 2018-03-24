@@ -25,7 +25,7 @@ function handleMessages(err, data, callback) {
 				var message = data.Messages[i];
                 var messageBody = JSON.parse(message.Body);
                 console.log(messageBody.cognitoUsername);
-                sendText(message.ReceiptHandle, Body.cognitoUsername, callback);
+                sendText(message.ReceiptHandle, messageBody.cognitoUsername, callback);
             }
         }
         callback(null, null);
@@ -36,14 +36,14 @@ function handleMessages(err, data, callback) {
 
 function sendText(receiptHandle, username, callback) {
     sns.publish({
-        Message: "You have a message!",
-        PhoneNumber: '+13475153859'
+        Message: `Hey, ${username}. You have a message!`,
+        PhoneNumber: '+1347*******'
     }, function(err, data) {
         deleteText(err, receiptHandle, callback);
     });
 }
 
-function deleteText(receiptHandle, callback) {
+function deleteText(err, receiptHandle, callback) {
     if(err === null) {
     	sqs.deleteMessage( {
     		QueueUrl: queueUrl,
