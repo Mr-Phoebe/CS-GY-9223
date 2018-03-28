@@ -1,5 +1,7 @@
 'use strict';
 
+
+// AWS 
 const AWS = require('aws-sdk');
 const cognito = new AWS.CognitoIdentityServiceProvider();
 const sns = new AWS.SNS();
@@ -7,6 +9,10 @@ const sqs = new AWS.SQS();
 
 const queueUrl = "https://sqs.us-east-1.amazonaws.com/923328157162/Chat-Message";
 
+// Yelp
+const yelp = require('yelp-fusion');
+const apiKey = 'VdRz5pcdB3wKOEp6j15nHH_DBL-OBY3pv_wR667HEWdkwu4W3N_Ag0M2Ei702f3d5nhWy8t6InJNoIprHlliwLVjJicmkJG0WDWUPgj8mbX9lSfr6E3FY01TEEe6WnYx';
+const client = yelp.client(apiKey);
 
 exports.handler = function (event, context, callback) {
     sqs.receiveMessage({
@@ -25,7 +31,7 @@ function handleMessages(err, data, callback) {
 				var message = data.Messages[i];
                 var messageBody = JSON.parse(message.Body);
                 console.log(messageBody.cognitoUsername);
-                sendText(message.ReceiptHandle, messageBody.cognitoUsername, callback);
+                getYelp(message.ReceiptHandle, messageBody.cognitoUsername, messageBody.message, callback);
             }
         }
         callback(null, null);
@@ -34,10 +40,21 @@ function handleMessages(err, data, callback) {
     }
 }
 
-function sendText(receiptHandle, username, callback) {
+function getYelp(receiptHandle, username, message, callback) {
+    client.search({
+        term:'Four Barrel Coffee',
+        location: 'san francisco, ca'
+    }).then(response => {
+        sendText(receiptHandle, username, JSON.stringify(response.jsonBody.businesses[0].name) + JSON.stringify(response.jsonBody.businesses[0].location), callback);
+    }).catch(err => {
+        callback(err);
+    });
+}
+
+function sendText(receiptHandle, username, message, callback) {
     sns.publish({
-        Message: `Hey, ${username}. You have a message!`,
-        PhoneNumber: '+1347*******'
+        Message: message,
+        PhoneNumber: '+13472213193'
     }, function(err, data) {
         deleteText(err, receiptHandle, callback);
     });
