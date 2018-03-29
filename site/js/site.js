@@ -41,7 +41,7 @@ var ChatApp = window.ChatApp || {};
                 window.location = '/chats.html';
             },
             onFailure: function (err) {
-                alert(err);
+                alert(err.message);
             }
         });
     };
@@ -180,29 +180,29 @@ var ChatApp = window.ChatApp || {};
         });
 
         userPool.signUp(username, password, [email], null, function (err, result) {
-            var email_regex = /^.*@(gmail\.com|nyu\.edu)$/;
-            var password_regex = /^(?=.*[a-z])(?=.*[0-9]).*$/;
+            // var email_regex = /^.*@(gmail\.com|nyu\.edu)$/;
+            // var password_regex = /^(?=.*[a-z])(?=.*[0-9]).*$/;
 
             // check email address
-            if (($('#email').val()).match(email_regex) == null) {
-              alert('Email address shoule like something@gmail.com or something@nyu.edu');
-              return;
-            }
+            // if (($('#email').val()).match(email_regex) == null) {
+            //   alert('Email address shoule like something@gmail.com or something@nyu.edu');
+            //   return;
+            // }
             
-            // check password
-            if (($('#password').val()).match(password_regex) == null) {
-              alert('Password shoule have at least one number and one lowercase letter');
-              return;
-            }
+            // // check password
+            // if (($('#password').val()).match(password_regex) == null) {
+            //   alert('Password shoule have at least one number and one lowercase letter');
+            //   return;
+            // }
 
-            // check username
-            if (($('#username').val() == '')) {
-              alert('username should not be empty');
-              return;
-            }
+            // // check username
+            // if (($('#username').val() == '')) {
+            //   alert('username should not be empty');
+            //   return;
+            // }
 
             if (err) {
-                alert(err);
+                alert(err.message);
             } else {
                 window.location = '/confirm.html#' + username;
             }
@@ -217,7 +217,7 @@ var ChatApp = window.ChatApp || {};
         });
         cognitoUser.confirmRegistration($('#code').val(), true, function (err, results) {
             if (err) {
-                alert(err);
+                alert(err.message);
             } else {
                 window.location = '/';
             }
@@ -232,7 +232,7 @@ var ChatApp = window.ChatApp || {};
         });
         cognitoUser.resendConfirmationCode(function (err) {
             if (err) {
-                alert(err);
+                alert(err.message);
             }
         })
     };
