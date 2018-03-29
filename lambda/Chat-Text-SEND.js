@@ -1,7 +1,7 @@
 'use strict';
 
 
-// AWS 
+// AWS
 const AWS = require('aws-sdk');
 const cognito = new AWS.CognitoIdentityServiceProvider();
 const sns = new AWS.SNS();
@@ -14,11 +14,11 @@ const yelp = require('yelp-fusion');
 const apiKey = 'VdRz5pcdB3wKOEp6j15nHH_DBL-OBY3pv_wR667HEWdkwu4W3N_Ag0M2Ei702f3d5nhWy8t6InJNoIprHlliwLVjJicmkJG0WDWUPgj8mbX9lSfr6E3FY01TEEe6WnYx';
 const client = yelp.client(apiKey);
 
-// ------- change time format
+// ------- change format
 
 function getSecond(year, month, day, hour, minute) {
     var months = [
-        0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 
+        0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
     ];
     if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0)) months[2] += 1;
     var days = year * 365 + parseInt((year - 1) / 4) - parseInt((year - 1) / 100) + parseInt((year - 1) / 400);
@@ -27,7 +27,7 @@ function getSecond(year, month, day, hour, minute) {
     }
     days += day - 1;
     var minutes = days * 24 * 60 + hour * 60 + minute;
-    return minutes * 60; 
+    return minutes * 60;
 }
 
 function changeTime(date, time) {
@@ -40,7 +40,22 @@ function changeTime(date, time) {
     return getSecond(year, month, day, hour, minute) - getSecond(1970, 1, 1, 0, 0);
 }
 
-// -------------
+function changeMessage(data) {
+    var name = data.name;
+    var address = data.location.display_address.join("");
+    var phone = data.phone;
+
+    var message = ""
+
+    if (phone === "") {
+        message = `We recommend you to go to ${name} to have dinner. It locates at ${address}. Have a good day! Thank you for using.`;
+    } else {
+        message = `We recommend you to go to ${name} to have dinner. It locates at ${address} and its phone number is ${phone}. Have a good day! Thank you for using.`;
+    }
+    return message;
+}
+
+// ------------- handler
 
 exports.handler = function (event, context, callback) {
     sqs.receiveMessage({
@@ -75,14 +90,15 @@ function getYelp(receiptHandle, message, callback) {
         limit: 1,
         open_at: changeTime(message.slots.Date, message.slots.Time)
     }).then(response => {
-        sendText(receiptHandle, JSON.stringify(response.jsonBody.businesses[0]), message.slots.Phone, callback);
+        console.log(response.jsonBody.businesses[0].name);
+        sendText(receiptHandle, changeMessage(response.jsonBody.businesses[0]), message.slots.Phone, callback);
     }).catch(err => {
         callback(err);
     });
 }
 
 function sendText(receiptHandle, message, Phone, callback) {
-    console.log(message);
+    console.log('The message is' + message);
     sns.publish({
         Message: message,
         PhoneNumber: Phone
