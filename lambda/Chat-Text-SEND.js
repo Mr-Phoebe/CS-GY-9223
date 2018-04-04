@@ -1,7 +1,7 @@
 'use strict';
 
 
-// AWS
+// AWS 
 const AWS = require('aws-sdk');
 const cognito = new AWS.CognitoIdentityServiceProvider();
 const sns = new AWS.SNS();
@@ -18,7 +18,7 @@ const client = yelp.client(apiKey);
 
 function getSecond(year, month, day, hour, minute) {
     var months = [
-        0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+        0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 
     ];
     if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0)) months[2] += 1;
     var days = year * 365 + parseInt((year - 1) / 4) - parseInt((year - 1) / 100) + parseInt((year - 1) / 400);
@@ -27,7 +27,7 @@ function getSecond(year, month, day, hour, minute) {
     }
     days += day - 1;
     var minutes = days * 24 * 60 + hour * 60 + minute;
-    return minutes * 60;
+    return minutes * 60; 
 }
 
 function changeTime(date, time) {
@@ -44,9 +44,9 @@ function changeMessage(data) {
     var name = data.name;
     var address = data.location.display_address.join("");
     var phone = data.phone;
-
+    
     var message = ""
-
+    
     if (phone === "") {
         message = `We recommend you to go to ${name} to have dinner. It locates at ${address}. Have a good day! Thank you for using.`;
     } else {
@@ -85,13 +85,13 @@ function handleMessages(err, data, callback) {
 function getYelp(receiptHandle, message, callback) {
     client.search({
         term: 'food',
-        location: message.slots.Location,
-        categories: message.slots.Cuisine,
+        location: message.Location,
+        categories: message.Cuisine,
         limit: 1,
-        open_at: changeTime(message.slots.Date, message.slots.Time)
+        open_at: changeTime(message.Date, message.Time)
     }).then(response => {
         console.log(response.jsonBody.businesses[0].name);
-        sendText(receiptHandle, changeMessage(response.jsonBody.businesses[0]), message.slots.Phone, callback);
+        sendText(receiptHandle, changeMessage(response.jsonBody.businesses[0]), message.Phone, callback);
     }).catch(err => {
         callback(err);
     });
