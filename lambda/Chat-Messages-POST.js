@@ -78,9 +78,9 @@ function getReply(err, event, othername, callback) {
 
 function postReply(err, event, data, othername, callback) {
     if (err === null) {
-    	if (data.intentName === 'DiningSuggestions' && data.dialogState === 'ReadyForFulfillment') {
-    	    postQueue(data, callback);
-    	}
+    	//if (data.intentName === 'DiningSuggestions' && data.dialogState === 'ReadyForFulfillment') {
+    	//    postQueue(data, callback);
+    	//}
         // Automatically reply
         dynamo.putItem({
             TableName: 'Chat-Messages',
