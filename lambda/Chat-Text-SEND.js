@@ -86,7 +86,7 @@ function handleMessages(err, data, callback) {
 
 function getElasticSearchResult(receiptHandle, message, callback) {
     const url =
-        `https://search-test-53ovxqlaqknuaw6gkz5jfvjqaq.us-east-1.es.amazonaws.com/index3/_search?q=${message.Cuisine}&pretty`;
+        `https://search-test-53ovxqlaqknuaw6gkz5jfvjqaq.us-east-1.es.amazonaws.com/index5/_search?sort=score:desc&q=cuisine:${message.Cuisine}&size=5&pretty`;
     const https = require("https");
     
     https.get(url, res => {
@@ -100,34 +100,61 @@ function getElasticSearchResult(receiptHandle, message, callback) {
         body = JSON.parse(body);
         var items = body.hits.hits;
         
-        getDetail(receiptHandle, items[0]._source.id, message, callback);
-        
+        var ids = [];
+        for (var i = 0; i < items.length; i++) {
+            ids.push(items[i]._source.id);
+        }
+        // getDetail(receiptHandle, items[0]._source.id, message, callback);
+        getDetail(receiptHandle, ids, message, callback);
       });
     });
 }
 
-function getDetail(receiptHandle, id, message, callback) {
+
+
+function getDetail(receiptHandle, ids, message, callback) {
     var TABLE_NAME = 'Chat-Restaurant';
-    var item = {
-        TableName: TABLE_NAME,
-        Key: { id: { S: id } }
-    };
-    
-    dynamodb.getItem(item, function (err, data) {
-        if (err) { console.log(err); }
-        else {  
-            data = data.Item;
-            var name = data.name.S;
-            var phone = data.phone.S;
-            var address = data.address.S;
-            
-            var text = "";
-            if (phone === "Null") {
-                text = `We recommend you to go to ${name} to have dinner. It locates at ${address}. Have a good day! Thank you for using.`;
-            } else {
-                text = `We recommend you to go to ${name} to have dinner. It locates at ${address} and its phone number is ${phone}. Have a good day! Thank you for using.`;
+    var keys = []
+    for (var i = 0; i < ids.length; i++) {
+        keys.push({
+            id: {
+                S: ids[i]
+            } 
+        });
+    }
+    console.log(keys);
+    var params = {
+        RequestItems: {
+            "Chat-Restaurant": {
+                Keys: keys
             }
-        
+        }
+     };
+     
+     dynamodb.batchGetItem(params, function(err, data) {
+        if (err) console.log(err, err.stack); // an error occurred
+        else { // successful response
+            data = data.Responses["Chat-Restaurant"];
+            console.log(data);
+            
+            var text = `We now have ${data.length} suggestions for you.\n`;
+            
+            var number = ['first', 'second', 'third', 'fourth', 'fifth'];
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
+                var name = item.name.S;
+                var phone = item.phone.S;
+                var address = item.address.S;
+                
+                if (phone === "Null") {
+                    text += `${number[i]}, we recommend you to go to ${name} to have dinner. It locates at ${address}.\n`;
+                } else {
+                    text += `${number[i]}, we recommend you to go to ${name} to have dinner. It locates at ${address} and its phone number is ${phone}.\n`;
+                }
+            }
+            
+            text += ' Have a good day! Thank you for using.';
+            
             sendText(receiptHandle, text, message.Phone, callback);
         }
     });
