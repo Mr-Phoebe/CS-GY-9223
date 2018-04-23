@@ -6,6 +6,7 @@ const AWS = require('aws-sdk');
 const cognito = new AWS.CognitoIdentityServiceProvider();
 const sns = new AWS.SNS();
 const sqs = new AWS.SQS();
+const dynamodb = new AWS.DynamoDB();
 
 const queueUrl = "https://sqs.us-east-1.amazonaws.com/923328157162/Chat-Message";
 
@@ -73,13 +74,64 @@ function handleMessages(err, data, callback) {
             for(var i = 0; i < msgCount; i++) {
 				var message = data.Messages[i];
                 var messageBody = JSON.parse(message.Body);
-                getYelp(message.ReceiptHandle, messageBody, callback);
+                // getYelp(message.ReceiptHandle, messageBody, callback);
+                getElasticSearchResult(message.ReceiptHandle, messageBody, callback);
             }
         }
         callback(null, null);
     } else {
         callback(err);
     }
+}
+
+function getElasticSearchResult(receiptHandle, message, callback) {
+    const url =
+        `https://search-test-53ovxqlaqknuaw6gkz5jfvjqaq.us-east-1.es.amazonaws.com/index3/_search?q=${message.Cuisine}&pretty`;
+    const https = require("https");
+    
+    https.get(url, res => {
+      res.setEncoding("utf8");
+        
+      let body = "";
+      res.on("data", data => {
+        body += data;
+      });
+      res.on("end", () => {
+        body = JSON.parse(body);
+        var items = body.hits.hits;
+        
+        getDetail(receiptHandle, items[0]._source.id, message, callback);
+        
+      });
+    });
+}
+
+function getDetail(receiptHandle, id, message, callback) {
+    var TABLE_NAME = 'Chat-Restaurant';
+    var item = {
+        TableName: TABLE_NAME,
+        Key: { id: { S: id } }
+    };
+    
+    dynamodb.getItem(item, function (err, data) {
+        if (err) { console.log(err); }
+        else {  
+            data = data.Item;
+            var name = data.name.S;
+            var phone = data.phone.S;
+            var address = data.address.S;
+            
+            var text = "";
+            if (phone === "Null") {
+                text = `We recommend you to go to ${name} to have dinner. It locates at ${address}. Have a good day! Thank you for using.`;
+            } else {
+                text = `We recommend you to go to ${name} to have dinner. It locates at ${address} and its phone number is ${phone}. Have a good day! Thank you for using.`;
+            }
+        
+            sendText(receiptHandle, text, message.Phone, callback);
+        }
+    });
+
 }
 
 function getYelp(receiptHandle, message, callback) {
