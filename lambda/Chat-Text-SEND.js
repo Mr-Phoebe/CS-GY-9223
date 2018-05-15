@@ -12,7 +12,7 @@ const queueUrl = "https://sqs.us-east-1.amazonaws.com/923328157162/Chat-Message"
 
 // Yelp
 const yelp = require('yelp-fusion');
-const apiKey = 'VdRz5pcdB3wKOEp6j15nHH_DBL-OBY3pv_wR667HEWdkwu4W3N_Ag0M2Ei702f3d5nhWy8t6InJNoIprHlliwLVjJicmkJG0WDWUPgj8mbX9lSfr6E3FY01TEEe6WnYx';
+const apiKey = '';
 const client = yelp.client(apiKey);
 
 // ------- change format
